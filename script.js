@@ -1,6 +1,10 @@
 /* ============================================================================
  * LOCATION-SHARING SOCIAL DISCONNECTION PARADIGM
- * Condition: EXCLUSION — G and M diverge (total ~65s)
+ * Condition: EXCLUSION — G and M diverge (total ~91s)
+ *
+ * v2: same start points; speed 2.00 -> 2.20 m/s and a 24s block added at the
+ * end (62–86) so G and M cover more distance. Total pause per icon: 15s for
+ * G and 15s for M (incl. the first 2s). G and M never pause at the same time.
  *
  * ── MOVEMENT TABLE (global seconds) ────────────────────────────────────────
  *  t         G                         M
@@ -21,6 +25,19 @@
  * 50–53    deviate EAST              deviate WEST
  * 53–56    deviate WEST              deviate EAST
  * 56–62    straight BG               straight BM
+ * ── added block ──
+ * 62–64    straight BG               PAUSE (2s)
+ * 64–66    straight BG               straight BM
+ * 66–68    PAUSE (2s)                straight BM
+ * 68–70    deviate EAST              straight BM
+ * 70–71    deviate EAST              deviate WEST
+ * 71–73    deviate WEST              deviate WEST
+ * 73–74    deviate WEST              deviate EAST
+ * 74–76    straight BG               deviate EAST
+ * 76–80    straight BG               straight BM
+ * 80–82    PAUSE (2s)                straight BM
+ * 82–84    straight BG               PAUSE (2s)
+ * 84–86    straight BG               straight BM
  * ========================================================================== */
 
 const CONDITION         = "EXCLUSION";
@@ -30,7 +47,7 @@ const MAP_CENTER         = [32.888799, 39.929662];
 const SCENE_ROTATION_DEG = 21;
 const MAP_ZOOM           = 16.3;
 
-const WALK_SPEED_MPS = 2.00;
+const WALK_SPEED_MPS = 2.20;
 const T_STABLE       = 2000;
 const T_FINAL_HOLD   = 3000;
 
@@ -114,6 +131,14 @@ const SCHEDULE_G = [
     ...buildPureDrift(3, EAST),            // global 50–53  deviate EAST
     ...buildPureDrift(3, WEST),            // global 53–56  deviate WEST
     { d: 6,  b: BG },                      // global 56–62  straight BG
+    // ── added block ──
+    { d: 4,  b: BG },                      // global 62–66  straight BG
+    { d: 2,  b: null },                    // global 66–68  PAUSE (2s)
+    ...buildPureDrift(3, EAST),            // global 68–71  deviate EAST
+    ...buildPureDrift(3, WEST),            // global 71–74  deviate WEST
+    { d: 6,  b: BG },                      // global 74–80  straight BG
+    { d: 2,  b: null },                    // global 80–82  PAUSE (2s)
+    { d: 4,  b: BG },                      // global 82–86  straight BG
 ];
 
 const SCHEDULE_M = [
@@ -134,6 +159,14 @@ const SCHEDULE_M = [
     ...buildPureDrift(3, WEST),            // global 50–53  deviate WEST
     ...buildPureDrift(3, EAST),            // global 53–56  deviate EAST
     { d: 6,  b: BM },                      // global 56–62  straight BM
+    // ── added block ──
+    { d: 2,  b: null },                    // global 62–64  PAUSE (2s)
+    { d: 6,  b: BM },                      // global 64–70  straight BM
+    ...buildPureDrift(3, WEST),            // global 70–73  deviate WEST
+    ...buildPureDrift(3, EAST),            // global 73–76  deviate EAST
+    { d: 6,  b: BM },                      // global 76–82  straight BM
+    { d: 2,  b: null },                    // global 82–84  PAUSE (2s)
+    { d: 2,  b: BM },                      // global 84–86  straight BM
 ];
 
 // ── Runtime ───────────────────────────────────────────────────────────────────
