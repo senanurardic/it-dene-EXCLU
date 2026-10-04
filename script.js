@@ -108,14 +108,10 @@ const WEST = 270;
 
 const START_G = [32.888409, 39.929681];
 const START_M = [32.889090, 39.929422];
-const START_U = [32.888559, 39.929150];
+const START_U = [32.888508, 39.928995];
 
 const TARGET_G = [32.888455, 39.930278];
 const TARGET_M = [32.890168, 39.929707];
-
-const ROAD_START    = [32.888752, 39.929566];
-const ROAD_TARGET_1 = [32.888541, 39.930241];
-const ROAD_TARGET_2 = [32.889835, 39.929885];
 
 const BG = calculateBearing(START_G, TARGET_G);
 const BM = calculateBearing(START_M, TARGET_M);
@@ -369,7 +365,6 @@ function injectUIDesignStyles() {
             justify-content:center; transition:background .2s,transform .1s }
         #submit-btn:active { transform:scale(.96); background:#2c5282 }
         
-        /* ── D-pad / movement control design (ported from the interactive build) ── */
         #d-pad {
             position: absolute;
             bottom: 24px;
@@ -593,36 +588,6 @@ function bootstrap() {
             map.on("load", () => {
                 mapHasLoaded = true; clearTimeout(mapLoadTimeoutId);
                 declutterBasemap(); applyFindMyPalette();
-
-                map.addSource("virtual-roads", { type: "geojson", data: { type: "FeatureCollection", features: [
-                    { type: "Feature", geometry: { type: "LineString", coordinates: [START_G, TARGET_G] } },
-                    { type: "Feature", geometry: { type: "LineString", coordinates: [START_M, TARGET_M] } },
-                    { type: "Feature", geometry: { type: "LineString", coordinates: [ROAD_START, ROAD_TARGET_1] } },
-                    { type: "Feature", geometry: { type: "LineString", coordinates: [ROAD_START, ROAD_TARGET_2] } },
-                    { type: "Feature", geometry: { type: "LineString", coordinates: [[32.888292,39.930351],[32.887327,39.930721]] } }
-                ]}});
-
-                let firstRoadLayerId = null;
-                for (const l of map.getStyle().layers) {
-                    const sl = (l["source-layer"] || "").toLowerCase();
-                    if (sl === "transportation") {
-                        firstRoadLayerId = l.id;
-                        break;
-                    }
-                }
-
-                map.addLayer({
-                    id: "virtual-roads-casing", type: "line", source: "virtual-roads",
-                    layout: { "line-join": "round", "line-cap": "round" },
-                    paint: { "line-color": "#e4dfd3", "line-width": 12 }
-                }, firstRoadLayerId);
-
-                map.addLayer({
-                    id: "virtual-roads-core", type: "line", source: "virtual-roads",
-                    layout: { "line-join": "round", "line-cap": "round" },
-                    paint: { "line-color": "#ffffff", "line-width": 8 }
-                }, firstRoadLayerId);
-
                 map.getCanvas().style.filter = "none";
             });
 
@@ -634,8 +599,6 @@ function bootstrap() {
 function setupMovementControls() {
     const TICK_RATE_MS = 30;
     const METERS_PER_TICK = (WALK_SPEED_MPS / 1000) * TICK_RATE_MS;
-    // How far in from the true edge of the screen the blue dot is allowed to
-    // go — keeps its icon fully visible instead of clipping at the very edge.
     const SCREEN_EDGE_MARGIN_PX = 40;
 
     const keyDirections = {
@@ -645,10 +608,6 @@ function setupMovementControls() {
         'ArrowLeft': (270 + SCENE_ROTATION_DEG) % 360
     };
 
-    // Half-width/half-height of the allowed walking area, in meters, measured
-    // along the SCREEN's own right/up axes (which are rotated by
-    // SCENE_ROTATION_DEG relative to geographic east/north, since the map
-    // itself is drawn rotated). Recomputed whenever the viewport size changes.
     let viewHalfWidthM = 0;
     let viewHalfHeightM = 0;
     const mpp = metersPerPixel(MAP_CENTER[1], MAP_ZOOM);
@@ -665,15 +624,10 @@ function setupMovementControls() {
     const rotRad = SCENE_ROTATION_DEG * Math.PI / 180;
     const sinB = Math.sin(rotRad), cosB = Math.cos(rotRad);
 
-    // Keeps a candidate position inside the fixed, never-moving screen: the
-    // screen's center is permanently MAP_CENTER (the map camera never pans), so
-    // this clamps the point's screen-right/screen-up offset from MAP_CENTER to
-    // the visible half-width/half-height, sliding along the edge instead of
-    // letting the dot walk off-screen.
     function clampToScreen(pos) {
-        const [vx, vy] = toXY(pos, MAP_CENTER); // geographic east/north meters from the fixed center
-        let right = vx * cosB - vy * sinB;   // component along the screen's "right" axis
-        let up    = vx * sinB + vy * cosB;   // component along the screen's "up" axis
+        const [vx, vy] = toXY(pos, MAP_CENTER);
+        let right = vx * cosB - vy * sinB;
+        let up    = vx * sinB + vy * cosB;
         right = Math.max(-viewHalfWidthM,  Math.min(viewHalfWidthM,  right));
         up    = Math.max(-viewHalfHeightM, Math.min(viewHalfHeightM, up));
         const vx2 =  right * cosB + up * sinB;
@@ -689,8 +643,6 @@ function setupMovementControls() {
         if (markerInstances["mainNode"]) {
             markerInstances["mainNode"].setLngLat(userPos);
         }
-        // The screen/camera itself never moves (it stays fixed on MAP_CENTER) —
-        // only the blue dot's marker position updates, clamped to stay inside it.
     };
 
     const startMove = (bearing, identifier) => {
