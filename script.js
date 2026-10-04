@@ -54,7 +54,7 @@ const CONDITION_LABEL = "Exclusion Condition";
 
 const MAP_CENTER         = [32.888799, 39.929662];
 const SCENE_ROTATION_DEG = 21;
-const MAP_ZOOM           = 15.8;
+const MAP_ZOOM           = 15.6;
 
 const WALK_SPEED_MPS = 4.50;
 const T_STABLE       = 2000;
